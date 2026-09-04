@@ -2,10 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { RoseBranch } from './components/RoseBranch';
 import './App.css';
 
+// استخدام مسار ديناميكي يتوافق مع Vite و GitHub Pages
+const DEFAULT_LOGO = `${import.meta.env.BASE_URL}ag-logo.png`;
+
 function App() {
   const [showInvitation, setShowInvitation] = useState(false);
   const [customLogo, setCustomLogo] = useState<string>(() => {
-    return localStorage.getItem('wedding_custom_logo') || '/ag-logo.png';
+    return localStorage.getItem('wedding_custom_logo') || DEFAULT_LOGO;
   });
   const [showLogoModal, setShowLogoModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -79,7 +82,7 @@ function App() {
   };
 
   const resetLogo = () => {
-    setCustomLogo('/ag-logo.png');
+    setCustomLogo(DEFAULT_LOGO);
     localStorage.removeItem('wedding_custom_logo');
     setShowLogoModal(false);
   };
@@ -121,7 +124,7 @@ function App() {
               <button className="btn-close-modal" onClick={() => setShowLogoModal(false)}>
                 إلغاء
               </button>
-              {customLogo !== '/ag-logo.png' && (
+              {customLogo !== DEFAULT_LOGO && (
                 <button className="btn-reset-logo" onClick={resetLogo}>
                   استعادة اللوغو الافتراضي
                 </button>
