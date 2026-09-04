@@ -1,9 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RoseBranch } from './components/RoseBranch';
 import './App.css';
 
 function App() {
   const [showInvitation, setShowInvitation] = useState(false);
+  const [customLogo, setCustomLogo] = useState<string>(() => {
+    return localStorage.getItem('wedding_custom_logo') || '/ag-logo.png';
+  });
+  const [showLogoModal, setShowLogoModal] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [countdown, setCountdown] = useState({
     days: '00',
@@ -53,13 +58,84 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        if (result) {
+          setCustomLogo(result);
+          try {
+            localStorage.setItem('wedding_custom_logo', result);
+          } catch {
+            // In case of quota limit
+          }
+          setShowLogoModal(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const resetLogo = () => {
+    setCustomLogo('/ag-logo.png');
+    localStorage.removeItem('wedding_custom_logo');
+    setShowLogoModal(false);
+  };
+
   return (
     <>
+      {/* زر عائم لتسهيل رفع اللوغو الخاص بك مباشرة من جهازك */}
+      <button 
+        className="custom-logo-btn"
+        onClick={() => setShowLogoModal(true)}
+        title="تغيير اللوغو الخاص بك"
+      >
+        <span>📷</span>
+        <span>تغيير اللوغو</span>
+      </button>
+
+      {/* نافذة رفع اللوغو */}
+      {showLogoModal && (
+        <div className="logo-uploader-modal" onClick={() => setShowLogoModal(false)}>
+          <div className="logo-uploader-card" onClick={(e) => e.stopPropagation()}>
+            <h3>رفع اللوغو الخاص بك</h3>
+            <p>
+              بإمكانك اختيار صورة الشعار من جهازك أو هاتفك وسيتم تطبيقها فوراً على الدعوة بكل وضوح.
+            </p>
+
+            <label className="file-input-label">
+              <span>📁</span>
+              <span>اختر صورة اللوغو من جهازك</span>
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleLogoUpload}
+                style={{ display: 'none' }}
+              />
+            </label>
+
+            <div className="logo-modal-actions">
+              <button className="btn-close-modal" onClick={() => setShowLogoModal(false)}>
+                إلغاء
+              </button>
+              {customLogo !== '/ag-logo.png' && (
+                <button className="btn-reset-logo" onClick={resetLogo}>
+                  استعادة اللوغو الافتراضي
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {!showInvitation ? (
         <section className="welcome" id="welcome">
           {/* Logo A & G */}
-          <div className="divider">
-            <img src="/ag-logo.png" alt="Wedding Logo" className="ag-logo" />
+          <div className="divider" onClick={() => setShowLogoModal(true)} style={{ cursor: 'pointer' }} title="انقر لتغيير اللوغو">
+            <img src={customLogo} alt="Wedding Logo" className="ag-logo" />
           </div>
 
           <p className="small-title">بِسْمِ اللهِ الرَّحْمَنِ الرَّحِيمِ</p>
@@ -135,8 +211,12 @@ function App() {
             </div>
 
             {/* Logo */}
-            <div className="divider">
-              <img src="/ag-logo.png" alt="Wedding Logo" className="ag-logo" />
+            <div className="divider" onClick={() => setShowLogoModal(true)} style={{ cursor: 'pointer' }} title="انقر لتغيير اللوغو">
+              <img
+                src={customLogo}
+                alt="Wedding Logo"
+                className="ag-logo"
+              />
             </div>
 
             <p className="closing">
@@ -282,8 +362,8 @@ function App() {
             </p>
 
             {/* Logo */}
-            <div className="divider">
-              <img src="/ag-logo.png" alt="Wedding Logo" className="ag-logo" />
+            <div className="divider" onClick={() => setShowLogoModal(true)} style={{ cursor: 'pointer' }} title="انقر لتغيير اللوغو">
+              <img src={customLogo} alt="Wedding Logo" className="ag-logo" />
             </div>
 
             <div className="heading-framed" style={{ marginTop: '10px' }}>
