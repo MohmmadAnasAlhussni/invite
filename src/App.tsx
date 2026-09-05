@@ -104,14 +104,7 @@ function App() {
       <audio ref={audioRef} src={AUDIO_PATH} preload="auto" loop />
 
       {/* زر عائم لتسهيل رفع اللوغو الخاص بك مباشرة من جهازك */}
-      <button 
-        className="custom-logo-btn"
-        onClick={() => setShowLogoModal(true)}
-        title="تغيير اللوغو الخاص بك"
-      >
-        <span>📷</span>
-        <span>تغيير اللوغو</span>
-      </button>
+
 
       {/* نافذة رفع اللوغو */}
       {showLogoModal && (
