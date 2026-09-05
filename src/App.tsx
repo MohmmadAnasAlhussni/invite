@@ -151,7 +151,7 @@ function App() {
 
               <div>
                 <span className="family">عائلة دادو</span>
-                <h3>السيد هشام</h3>
+                <h3>السيد هشام أحمد دادو</h3>
                 <h4>الأستاذة غالية</h4>
               </div>
             </div>
