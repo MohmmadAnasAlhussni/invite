@@ -144,7 +144,7 @@ function App() {
               <div>
                 <span className="family">عائلة الحصني</span>
                 <h3>المهندس</h3>
-                <h4>م��مد أنس محمد توفيق الحصني</h4>
+                <h4>محمد أنس محمد توفيق الحصني</h4>
               </div>
 
               <div className="heart">♥</div>
