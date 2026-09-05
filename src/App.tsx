@@ -12,6 +12,10 @@ function App() {
   // مرجع عنصر الصوت
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // إصلاح: تعريف اللوغو ووضع مودال التغيير
+  const [customLogo, setCustomLogo] = useState(DEFAULT_LOGO);
+  const [showLogoModal, setShowLogoModal] = useState(false);
+
   const [countdown, setCountdown] = useState({
     days: '00',
     hours: '00',
@@ -57,7 +61,8 @@ function App() {
 
   const openInvitation = () => {
     setShowInvitation(true);
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    // تصحيح: استخدم 'smooth' أو 'auto' بدل 'instant'
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
     // تشغيل الصوت فور الضغط للالتفاف على حظر المتصفح
     if (audioRef.current) {
@@ -139,7 +144,7 @@ function App() {
               <div>
                 <span className="family">عائلة الحصني</span>
                 <h3>المهندس</h3>
-                <h4>محمد أنس محمد توفيق الحصني</h4>
+                <h4>م��مد أنس محمد توفيق الحصني</h4>
               </div>
 
               <div className="heart">♥</div>
