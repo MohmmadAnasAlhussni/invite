@@ -2,12 +2,19 @@ import { useState, useEffect, useRef } from 'react';
 import { RoseBranch } from './components/RoseBranch';
 import './App.css';
 
-// استخدام مسار ديناميكي يتوافق مع Vite و GitHub Pages
+// المسارات الديناميكية المتوافقة مع Vite و GitHub Pages
 const DEFAULT_LOGO = `${import.meta.env.BASE_URL}ag-logo.png`;
-const Music = '/Music.mp3';
+const AUDIO_PATH = `${import.meta.env.BASE_URL}Music.mp3`;
 
 function App() {
   const [showInvitation, setShowInvitation] = useState(false);
+  const [customLogo, setCustomLogo] = useState<string>(() => {
+    return localStorage.getItem('wedding_custom_logo') || DEFAULT_LOGO;
+  });
+  const [showLogoModal, setShowLogoModal] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // مرجع عنصر الصوت
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [countdown, setCountdown] = useState({
@@ -53,66 +60,99 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-
-    if (!audio) return;
-
-    const playMusic = async () => {
-      try {
-        audio.muted = false;
-        audio.volume = 0.8;
-        audio.loop = false;
-        await audio.play();
-      } catch {
-        // المتصفح يمنع التشغيل التلقائي حتى يوجد تفاعل من المستخدم
-      }
-    };
-
-    const handleEnded = () => {
-      audio.currentTime = 0;
-      void playMusic();
-    };
-
-    audio.addEventListener('ended', handleEnded);
-    void playMusic();
-
-    const resumeOnInteraction = () => {
-      void playMusic();
-    };
-
-    window.addEventListener('pointerdown', resumeOnInteraction, { once: true });
-    window.addEventListener('touchstart', resumeOnInteraction, { once: true });
-
-    return () => {
-      audio.removeEventListener('ended', handleEnded);
-      window.removeEventListener('pointerdown', resumeOnInteraction);
-      window.removeEventListener('touchstart', resumeOnInteraction);
-    };
-  }, []);
-
   const openInvitation = () => {
     setShowInvitation(true);
     window.scrollTo({ top: 0, behavior: 'instant' });
+
+    // تشغيل الصوت فور الضغط للالتفاف على حظر المتصفح
+    if (audioRef.current) {
+      audioRef.current.play().catch((err) => {
+        console.log("Autoplay blocked by browser:", err);
+      });
+    }
+  };
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        if (result) {
+          setCustomLogo(result);
+          try {
+            localStorage.setItem('wedding_custom_logo', result);
+          } catch {
+            // In case of quota limit
+          }
+          setShowLogoModal(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const resetLogo = () => {
+    setCustomLogo(DEFAULT_LOGO);
+    localStorage.removeItem('wedding_custom_logo');
+    setShowLogoModal(false);
   };
 
   return (
     <>
-      <audio
-        ref={audioRef}
-        src={Music}
-        autoPlay
-        playsInline
-        preload="auto"
-        loop={false}
-        controls={false}
-        style={{ display: 'none' }}
-      />
+      {/* عنصر الصوت المتوافق محلياً وأونلاين */}
+      <audio ref={audioRef} src={AUDIO_PATH} preload="auto" loop />
+
+      {/* زر عائم لتسهيل رفع اللوغو الخاص بك مباشرة من جهازك */}
+      <button 
+        className="custom-logo-btn"
+        onClick={() => setShowLogoModal(true)}
+        title="تغيير اللوغو الخاص بك"
+      >
+        <span>📷</span>
+        <span>تغيير اللوغو</span>
+      </button>
+
+      {/* نافذة رفع اللوغو */}
+      {showLogoModal && (
+        <div className="logo-uploader-modal" onClick={() => setShowLogoModal(false)}>
+          <div className="logo-uploader-card" onClick={(e) => e.stopPropagation()}>
+            <h3>رفع اللوغو الخاص بك</h3>
+            <p>
+              بإمكانك اختيار صورة الشعار من جهازك أو هاتفك وسيتم تطبيقها فوراً على الدعوة بكل وضوح.
+            </p>
+
+            <label className="file-input-label">
+              <span>📁</span>
+              <span>اختر صورة اللوغو من جهازك</span>
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleLogoUpload}
+                style={{ display: 'none' }}
+              />
+            </label>
+
+            <div className="logo-modal-actions">
+              <button className="btn-close-modal" onClick={() => setShowLogoModal(false)}>
+                إلغاء
+              </button>
+              {customLogo !== DEFAULT_LOGO && (
+                <button className="btn-reset-logo" onClick={resetLogo}>
+                  استعادة اللوغو الافتراضي
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {!showInvitation ? (
         <section className="welcome" id="welcome">
           {/* Logo A & G */}
-          <div className="divider">
-            <img src={DEFAULT_LOGO} alt="Wedding Logo" className="ag-logo" />
+          <div className="divider" onClick={() => setShowLogoModal(true)} style={{ cursor: 'pointer' }} title="انقر لتغيير اللوغو">
+            <img src={customLogo} alt="Wedding Logo" className="ag-logo" />
           </div>
 
           <p className="small-title">بِسْمِ اللهِ الرَّحْمَنِ الرَّحِيمِ</p>
@@ -182,14 +222,18 @@ function App() {
 
               <div>
                 <span className="family">عائلة دادو</span>
-                <h3> السيد هشام أحمد دادو</h3>
+                <h3>السيد هشام</h3>
                 <h4>الأستاذة غالية</h4>
               </div>
             </div>
 
             {/* Logo */}
-            <div className="divider">
-              <img src={DEFAULT_LOGO} alt="Wedding Logo" className="ag-logo" />
+            <div className="divider" onClick={() => setShowLogoModal(true)} style={{ cursor: 'pointer' }} title="انقر لتغيير اللوغو">
+              <img
+                src={customLogo}
+                alt="Wedding Logo"
+                className="ag-logo"
+              />
             </div>
 
             <p className="closing">
@@ -335,8 +379,8 @@ function App() {
             </p>
 
             {/* Logo */}
-            <div className="divider">
-              <img src={DEFAULT_LOGO} alt="Wedding Logo" className="ag-logo" />
+            <div className="divider" onClick={() => setShowLogoModal(true)} style={{ cursor: 'pointer' }} title="انقر لتغيير اللوغو">
+              <img src={customLogo} alt="Wedding Logo" className="ag-logo" />
             </div>
 
             <div className="heading-framed" style={{ marginTop: '10px' }}>

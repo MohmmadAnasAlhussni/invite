@@ -10,7 +10,8 @@ const __dirname = path.dirname(__filename);
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: './', // <--- تم إضافة هذا السطر لحل مشكلة المسارات
+  // تم تعيين المسار ليتطابق مع اسم المستودع على GitHub Pages
+  base: '/invite/',
   plugins: [react(), tailwindcss(), viteSingleFile()],
   resolve: {
     alias: {
