@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RoseBranch } from './components/RoseBranch';
 import './App.css';
 
 // استخدام مسار ديناميكي يتوافق مع Vite و GitHub Pages
 const DEFAULT_LOGO = `${import.meta.env.BASE_URL}ag-logo.png`;
+const Music = '/Music.mp3';
 
 function App() {
   const [showInvitation, setShowInvitation] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const [countdown, setCountdown] = useState({
     days: '00',
@@ -51,6 +53,44 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const audio = audioRef.current;
+
+    if (!audio) return;
+
+    const playMusic = async () => {
+      try {
+        audio.muted = false;
+        audio.volume = 0.8;
+        audio.loop = false;
+        await audio.play();
+      } catch {
+        // المتصفح يمنع التشغيل التلقائي حتى يوجد تفاعل من المستخدم
+      }
+    };
+
+    const handleEnded = () => {
+      audio.currentTime = 0;
+      void playMusic();
+    };
+
+    audio.addEventListener('ended', handleEnded);
+    void playMusic();
+
+    const resumeOnInteraction = () => {
+      void playMusic();
+    };
+
+    window.addEventListener('pointerdown', resumeOnInteraction, { once: true });
+    window.addEventListener('touchstart', resumeOnInteraction, { once: true });
+
+    return () => {
+      audio.removeEventListener('ended', handleEnded);
+      window.removeEventListener('pointerdown', resumeOnInteraction);
+      window.removeEventListener('touchstart', resumeOnInteraction);
+    };
+  }, []);
+
   const openInvitation = () => {
     setShowInvitation(true);
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -58,6 +98,16 @@ function App() {
 
   return (
     <>
+      <audio
+        ref={audioRef}
+        src={Music}
+        autoPlay
+        playsInline
+        preload="auto"
+        loop={false}
+        controls={false}
+        style={{ display: 'none' }}
+      />
       {!showInvitation ? (
         <section className="welcome" id="welcome">
           {/* Logo A & G */}
@@ -132,7 +182,7 @@ function App() {
 
               <div>
                 <span className="family">عائلة دادو</span>
-                <h3>السيد هشام</h3>
+                <h3> السيد هشام أحمد دادو</h3>
                 <h4>الأستاذة غالية</h4>
               </div>
             </div>
